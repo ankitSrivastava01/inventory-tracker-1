@@ -10,10 +10,38 @@ import streamlit as st
 
 
 ROOT = Path(__file__).resolve().parent
-SAMPLE_A = ROOT / "pprl_sample" / "workforce_client_a.csv"
-SAMPLE_B = ROOT / "pprl_sample" / "workforce_client_b.csv"
+
+
+def sample_file(name: str) -> Path:
+    for path in (ROOT / name, ROOT / "pprl_sample" / name):
+        if path.exists():
+            return path
+    return ROOT / "pprl_sample" / name
+
+
+SAMPLE_A = sample_file("workforce_client_a.csv")
+SAMPLE_B = sample_file("workforce_client_b.csv")
 
 DEFAULT_FIELDS = ["first_name", "last_name", "date_of_birth", "gender", "zip"]
+LINKAGE_FIELD_CANDIDATES = DEFAULT_FIELDS + [
+    "phone",
+    "email",
+    "address",
+    "city",
+    "state",
+    "state_slds_id",
+    "learner_id",
+    "k12_district",
+    "institution",
+    "credential_level",
+    "program_area",
+    "graduation_year",
+    "year",
+    "employment_quarter",
+    "employer_industry",
+    "from_occupation_code",
+    "to_occupation_code",
+]
 PREVIEW_COLUMNS = [
     "client_id",
     "first_name",
@@ -38,6 +66,58 @@ PREVIEW_COLUMNS = [
     "wage_change",
     "transition_rate",
 ]
+STYLE_CSS = """
+<style>
+:root {
+    --pprl-gray-900: #374151;
+    --pprl-gray-700: #4b5563;
+    --pprl-gray-600: #6b7280;
+    --pprl-purple: #7c3aed;
+    --pprl-purple-soft: rgba(124, 58, 237, 0.12);
+}
+.stApp, .stMarkdown, .stText, p, li, label, span, div {
+    color: var(--pprl-gray-700);
+}
+h1, h2, h3, h4, h5, h6 {
+    color: var(--pprl-gray-900) !important;
+}
+[data-testid="stCaptionContainer"] {
+    color: var(--pprl-gray-600) !important;
+}
+[data-testid="stMetricLabel"],
+[data-testid="stMetricValue"],
+[data-testid="stMetricDelta"] {
+    color: var(--pprl-gray-700) !important;
+}
+button, [role="tab"] {
+    color: var(--pprl-gray-700) !important;
+}
+[role="tab"][aria-selected="true"] {
+    color: var(--pprl-purple) !important;
+}
+.stSlider [data-baseweb="slider"] div {
+    color: var(--pprl-purple) !important;
+}
+.logic-gray {
+    color: var(--pprl-gray-600);
+    font-size: 1rem;
+    line-height: 1.55;
+}
+.logic-gray strong {
+    color: var(--pprl-purple);
+}
+.logic-gray code {
+    color: var(--pprl-gray-900);
+    background: var(--pprl-purple-soft);
+    padding: 0.1rem 0.25rem;
+    border-radius: 0.25rem;
+}
+.gray-heading {
+    color: var(--pprl-gray-900);
+    font-weight: 650;
+}
+</style>
+"""
 
 
 @dataclass(frozen=True)
@@ -220,63 +300,12 @@ def read_uploaded_or_sample(uploaded_file, sample_path: Path) -> pd.DataFrame:
     return pd.read_csv(uploaded_file, dtype=str)
 
 
-def main() -> None:
+def configure_page() -> None:
     st.set_page_config(page_title="PPRL SLDS USA POC", layout="wide")
-    st.markdown(
-        """
-        <style>
-        :root {
-            --pprl-gray-900: #374151;
-            --pprl-gray-700: #4b5563;
-            --pprl-gray-600: #6b7280;
-            --pprl-purple: #7c3aed;
-            --pprl-purple-soft: rgba(124, 58, 237, 0.12);
-        }
-        .stApp, .stMarkdown, .stText, p, li, label, span, div {
-            color: var(--pprl-gray-700);
-        }
-        h1, h2, h3, h4, h5, h6 {
-            color: var(--pprl-gray-900) !important;
-        }
-        [data-testid="stCaptionContainer"] {
-            color: var(--pprl-gray-600) !important;
-        }
-        [data-testid="stMetricLabel"],
-        [data-testid="stMetricValue"],
-        [data-testid="stMetricDelta"] {
-            color: var(--pprl-gray-700) !important;
-        }
-        button, [role="tab"] {
-            color: var(--pprl-gray-700) !important;
-        }
-        [role="tab"][aria-selected="true"] {
-            color: var(--pprl-purple) !important;
-        }
-        .stSlider [data-baseweb="slider"] div {
-            color: var(--pprl-purple) !important;
-        }
-        .logic-gray {
-            color: var(--pprl-gray-600);
-            font-size: 1rem;
-            line-height: 1.55;
-        }
-        .logic-gray strong {
-            color: var(--pprl-purple);
-        }
-        .logic-gray code {
-            color: var(--pprl-gray-900);
-            background: var(--pprl-purple-soft);
-            padding: 0.1rem 0.25rem;
-            border-radius: 0.25rem;
-        }
-        .gray-heading {
-            color: var(--pprl-gray-900);
-            font-weight: 650;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown(STYLE_CSS, unsafe_allow_html=True)
+
+
+def render_header() -> None:
     st.title("PPRL SLDS USA Matching POC")
     st.caption(
         "Proof of concept: link synthetic State Longitudinal Data System records across "
@@ -284,6 +313,8 @@ def main() -> None:
         "The USA sample spans multiple states; raw identifiers are shown only for demo review."
     )
 
+
+def render_sidebar():
     with st.sidebar:
         st.header("Inputs")
         left_file = st.file_uploader("Client A SLDS workforce CSV", type=["csv"])
@@ -292,6 +323,169 @@ def main() -> None:
         q = st.slider("Q-gram length", 2, 4, 2)
         threshold = st.slider("Match threshold", 0.1, 1.0, 0.72, 0.01)
         salt = st.text_input("Local hashing salt", value="pprl-demo-salt", type="password")
+    return left_file, right_file, q, threshold, salt
+
+
+def get_common_linkage_fields(left: pd.DataFrame, right: pd.DataFrame) -> list[str]:
+    return [
+        col
+        for col in LINKAGE_FIELD_CANDIDATES
+        if col in left.columns and col in right.columns
+    ]
+
+
+def render_metrics(left: pd.DataFrame, right: pd.DataFrame, matches: pd.DataFrame) -> None:
+    metric_cols = st.columns(4)
+    metric_cols[0].metric("Client A records", f"{len(left):,}")
+    metric_cols[1].metric("Client B records", f"{len(right):,}")
+    metric_cols[2].metric("Candidate matches", f"{len(matches):,}")
+    metric_cols[3].metric(
+        "Avg score",
+        "0.00" if matches.empty else f"{matches['similarity_score'].mean():.2f}",
+    )
+
+
+def render_data_tab(left: pd.DataFrame, right: pd.DataFrame) -> None:
+    left_col, right_col = st.columns(2)
+    with left_col:
+        st.subheader("Client A")
+        st.dataframe(left, width="stretch", hide_index=True)
+    with right_col:
+        st.subheader("Client B")
+        st.dataframe(right, width="stretch", hide_index=True)
+
+
+def render_matches_tab(enriched: pd.DataFrame) -> None:
+    st.subheader("Linked SLDS Data")
+    st.dataframe(enriched, width="stretch", hide_index=True)
+    st.download_button(
+        "Download linked SLDS data",
+        enriched.to_csv(index=False).encode("utf-8"),
+        "pprl_slds_candidate_matches.csv",
+        "text/csv",
+    )
+
+
+def render_logic_tab(matches: pd.DataFrame, q: int, threshold: float) -> None:
+    st.markdown(
+        f"""
+        <h3 class="gray-heading">PPRL Logic</h3>
+        <div class="logic-gray">
+        <p><strong>1. Start with SLDS education-to-workforce records.</strong><br>
+        The demo uses synthetic USA client records in a State Longitudinal Data System style.
+        Each row includes demographic fields plus education and workforce fields such as
+        <code>state_slds_id</code>, <code>institution</code>, <code>program_area</code>,
+        <code>graduation_year</code>, <code>employer_industry</code>,
+        <code>annual_wages</code>, <code>from_occupation</code>, and
+        <code>to_occupation</code>.</p>
+
+        <p><strong>2. Normalize linkage fields locally.</strong><br>
+        Selected fields are standardized before encoding. Names are lowercased and stripped
+        of punctuation, dates become <code>YYYYMMDD</code>, ZIPs use five digits, and phone
+        numbers use the last ten digits.</p>
+
+        <p><strong>3. Convert values into q-grams.</strong><br>
+        Each selected field is split into overlapping q-grams. Current q-gram length:
+        <code>{q}</code>. This allows fuzzy matching for small spelling differences like
+        <code>Aisha</code> vs <code>Ayesha</code> or <code>Street</code> vs <code>St</code>.</p>
+
+        <p><strong>4. Hash q-grams with a local salt.</strong><br>
+        Raw q-grams are transformed with salted SHA-256 hashes. The match step compares hashed
+        token overlap, not raw names or addresses. The salt should be shared only by approved
+        linkage parties.</p>
+
+        <p><strong>5. Block candidate pairs.</strong><br>
+        Records are only compared inside the same block:
+        <code>birth year | ZIP3 | gender</code>. Blocking keeps the candidate set small and
+        reduces unnecessary comparisons.</p>
+
+        <p><strong>6. Score matches with Dice similarity.</strong><br>
+        For each candidate pair, the app computes
+        <code>2 * shared_hashes / (left_hashes + right_hashes)</code>. Current threshold:
+        <code>{threshold:.2f}</code>. Pairs above the threshold appear in Candidate Matches.</p>
+
+        <p><strong>7. Review linkage output.</strong><br>
+        The POC shows raw fields only for demo validation. In a production PPRL workflow, the
+        linkage service would return record IDs and scores while keeping personally identifying
+        fields separated from downstream workforce mobility analytics.</p>
+        </div>
+        
+        <h3 class="gray-heading">Data Flow</h3>
+        <div class="logic-gray">
+        <p><strong>Raw SLDS partner data</strong><br>
+        Education and workforce partners contribute state, district, institution, credential,
+        program, occupation movement, wage, and employment-quarter signals.</p>
+
+        <p><strong>Synthetic client SLDS records</strong><br>
+        The sample generator creates two client-side files that represent the same
+        multi-state USA population with realistic data-entry variation and a small set of
+        unmatched records.</p>
+
+        <p><strong>Local preprocessing</strong><br>
+        Each party normalizes selected demographic and workforce fields locally.
+        Raw identifiers do not need to be sent to the matching layer.</p>
+
+        <p><strong>Privacy-preserving encoding</strong><br>
+        Normalized values become q-grams, then salted hashes. The linkage layer compares
+        hashed tokens and blocking keys instead of raw names, addresses, or dates.</p>
+
+        <p><strong>Candidate matching</strong><br>
+        Records in the same block are scored with Dice similarity. The output is a list of
+        likely linked IDs with scores, not a joined table of raw personal identifiers.</p>
+
+        <p><strong>SLDS analytics after linkage</strong><br>
+        Matched IDs can be used to analyze education-to-career questions such as credential
+        completion, program alignment, occupation movement, wage outcomes, and employment
+        industry while minimizing direct exposure of identifying fields.</p>
+        </div>
+
+        <h3 class="gray-heading">Advantages of PPRL</h3>
+        <div class="logic-gray">
+        <p><strong>Privacy by design.</strong> Linkage uses encoded tokens rather than plain
+        personally identifying information.</p>
+
+        <p><strong>Works across organizations.</strong> Different clients can participate in
+        linkage without sharing full raw demographic files with each other.</p>
+
+        <p><strong>Tolerates messy data.</strong> Q-grams help match common variations such as
+        nicknames, abbreviations, typos, and address formatting differences.</p>
+
+        <p><strong>Operationally scalable.</strong> Blocking reduces pairwise comparisons, which
+        keeps matching practical as record counts grow.</p>
+
+        <p><strong>Auditable matching.</strong> Scores, shared hash counts, block keys, thresholds,
+        and selected fields make match decisions reviewable.</p>
+
+        <p><strong>Useful for SLDS reporting.</strong> Once records are linked, analysts can
+        estimate education-to-workforce outcomes across states, schools, programs, employers,
+        wages, occupations, and transition rates without centralizing sensitive identifiers.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.subheader("Encoded Linkage Features")
+    st.write(
+        "This view exposes record IDs, blocking keys, token counts, and hash overlap. "
+        "It does not expose the raw q-grams used for matching."
+    )
+    encoded_preview = matches[
+        [
+            "left_id",
+            "right_id",
+            "block_key",
+            "left_token_count",
+            "right_token_count",
+            "shared_token_count",
+            "similarity_score",
+        ]
+    ]
+    st.dataframe(encoded_preview, width="stretch", hide_index=True)
+
+
+def main() -> None:
+    configure_page()
+    render_header()
+    left_file, right_file, q, threshold, salt = render_sidebar()
 
     left = read_uploaded_or_sample(left_file, SAMPLE_A)
     right = read_uploaded_or_sample(right_file, SAMPLE_B)
@@ -300,29 +494,7 @@ def main() -> None:
         st.error("Both files need a client_id column.")
         return
 
-    common_fields = [
-        col for col in DEFAULT_FIELDS + [
-            "phone",
-            "email",
-            "address",
-            "city",
-            "state",
-            "state_slds_id",
-            "learner_id",
-            "k12_district",
-            "institution",
-            "credential_level",
-            "program_area",
-            "graduation_year",
-            "year",
-            "employment_quarter",
-            "employer_industry",
-            "from_occupation_code",
-            "to_occupation_code",
-        ]
-        if col in left.columns and col in right.columns
-    ]
-
+    common_fields = get_common_linkage_fields(left, right)
     selected_fields = st.multiselect(
         "Fields encoded into hashed linkage keys",
         options=common_fields,
@@ -344,14 +516,7 @@ def main() -> None:
     )
     enriched = enrich_matches(matches, left, right, "client_id")
 
-    metric_cols = st.columns(4)
-    metric_cols[0].metric("Client A records", f"{len(left):,}")
-    metric_cols[1].metric("Client B records", f"{len(right):,}")
-    metric_cols[2].metric("Candidate matches", f"{len(matches):,}")
-    metric_cols[3].metric(
-        "Avg score",
-        "0.00" if matches.empty else f"{matches['similarity_score'].mean():.2f}",
-    )
+    render_metrics(left, right, matches)
 
     tab_data, tab_matches, tab_logic = st.tabs(
         [
@@ -362,138 +527,13 @@ def main() -> None:
     )
 
     with tab_data:
-        left_col, right_col = st.columns(2)
-        with left_col:
-            st.subheader("Client A")
-            st.dataframe(left, width="stretch", hide_index=True)
-        with right_col:
-            st.subheader("Client B")
-            st.dataframe(right, width="stretch", hide_index=True)
+        render_data_tab(left, right)
 
     with tab_matches:
-        st.subheader("Linked SLDS Data")
-        st.dataframe(enriched, width="stretch", hide_index=True)
-        st.download_button(
-            "Download linked SLDS data",
-            enriched.to_csv(index=False).encode("utf-8"),
-            "pprl_slds_candidate_matches.csv",
-            "text/csv",
-        )
+        render_matches_tab(enriched)
 
     with tab_logic:
-        st.markdown(
-            f"""
-            <h3 class="gray-heading">PPRL Logic</h3>
-            <div class="logic-gray">
-            <p><strong>1. Start with SLDS education-to-workforce records.</strong><br>
-            The demo uses synthetic USA client records in a State Longitudinal Data System style.
-            Each row includes demographic fields plus education and workforce fields such as
-            <code>state_slds_id</code>, <code>institution</code>, <code>program_area</code>,
-            <code>graduation_year</code>, <code>employer_industry</code>,
-            <code>annual_wages</code>, <code>from_occupation</code>, and
-            <code>to_occupation</code>.</p>
-
-            <p><strong>2. Normalize linkage fields locally.</strong><br>
-            Selected fields are standardized before encoding. Names are lowercased and stripped
-            of punctuation, dates become <code>YYYYMMDD</code>, ZIPs use five digits, and phone
-            numbers use the last ten digits.</p>
-
-            <p><strong>3. Convert values into q-grams.</strong><br>
-            Each selected field is split into overlapping q-grams. Current q-gram length:
-            <code>{q}</code>. This allows fuzzy matching for small spelling differences like
-            <code>Aisha</code> vs <code>Ayesha</code> or <code>Street</code> vs <code>St</code>.</p>
-
-            <p><strong>4. Hash q-grams with a local salt.</strong><br>
-            Raw q-grams are transformed with salted SHA-256 hashes. The match step compares hashed
-            token overlap, not raw names or addresses. The salt should be shared only by approved
-            linkage parties.</p>
-
-            <p><strong>5. Block candidate pairs.</strong><br>
-            Records are only compared inside the same block:
-            <code>birth year | ZIP3 | gender</code>. Blocking keeps the candidate set small and
-            reduces unnecessary comparisons.</p>
-
-            <p><strong>6. Score matches with Dice similarity.</strong><br>
-            For each candidate pair, the app computes
-            <code>2 * shared_hashes / (left_hashes + right_hashes)</code>. Current threshold:
-            <code>{threshold:.2f}</code>. Pairs above the threshold appear in Candidate Matches.</p>
-
-            <p><strong>7. Review linkage output.</strong><br>
-            The POC shows raw fields only for demo validation. In a production PPRL workflow, the
-            linkage service would return record IDs and scores while keeping personally identifying
-            fields separated from downstream workforce mobility analytics.</p>
-            </div>
-            
-            <h3 class="gray-heading">Data Flow</h3>
-            <div class="logic-gray">
-            <p><strong>Raw SLDS partner data</strong><br>
-            Education and workforce partners contribute state, district, institution, credential,
-            program, occupation movement, wage, and employment-quarter signals.</p>
-
-            <p><strong>Synthetic client SLDS records</strong><br>
-            The sample generator creates two client-side files that represent the same
-            multi-state USA population with realistic data-entry variation and a small set of
-            unmatched records.</p>
-
-            <p><strong>Local preprocessing</strong><br>
-            Each party normalizes selected demographic and workforce fields locally.
-            Raw identifiers do not need to be sent to the matching layer.</p>
-
-            <p><strong>Privacy-preserving encoding</strong><br>
-            Normalized values become q-grams, then salted hashes. The linkage layer compares
-            hashed tokens and blocking keys instead of raw names, addresses, or dates.</p>
-
-            <p><strong>Candidate matching</strong><br>
-            Records in the same block are scored with Dice similarity. The output is a list of
-            likely linked IDs with scores, not a joined table of raw personal identifiers.</p>
-
-            <p><strong>SLDS analytics after linkage</strong><br>
-            Matched IDs can be used to analyze education-to-career questions such as credential
-            completion, program alignment, occupation movement, wage outcomes, and employment
-            industry while minimizing direct exposure of identifying fields.</p>
-            </div>
-
-            <h3 class="gray-heading">Advantages of PPRL</h3>
-            <div class="logic-gray">
-            <p><strong>Privacy by design.</strong> Linkage uses encoded tokens rather than plain
-            personally identifying information.</p>
-
-            <p><strong>Works across organizations.</strong> Different clients can participate in
-            linkage without sharing full raw demographic files with each other.</p>
-
-            <p><strong>Tolerates messy data.</strong> Q-grams help match common variations such as
-            nicknames, abbreviations, typos, and address formatting differences.</p>
-
-            <p><strong>Operationally scalable.</strong> Blocking reduces pairwise comparisons, which
-            keeps matching practical as record counts grow.</p>
-
-            <p><strong>Auditable matching.</strong> Scores, shared hash counts, block keys, thresholds,
-            and selected fields make match decisions reviewable.</p>
-
-            <p><strong>Useful for SLDS reporting.</strong> Once records are linked, analysts can
-            estimate education-to-workforce outcomes across states, schools, programs, employers,
-            wages, occupations, and transition rates without centralizing sensitive identifiers.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.subheader("Encoded Linkage Features")
-        st.write(
-            "This view exposes record IDs, blocking keys, token counts, and hash overlap. "
-            "It does not expose the raw q-grams used for matching."
-        )
-        encoded_preview = matches[
-            [
-                "left_id",
-                "right_id",
-                "block_key",
-                "left_token_count",
-                "right_token_count",
-                "shared_token_count",
-                "similarity_score",
-            ]
-        ]
-        st.dataframe(encoded_preview, width="stretch", hide_index=True)
+        render_logic_tab(matches, q, threshold)
 
 
 if __name__ == "__main__":

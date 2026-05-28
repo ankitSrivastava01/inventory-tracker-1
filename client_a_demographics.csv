@@ -1,0 +1,13 @@
+client_id,first_name,last_name,date_of_birth,gender,phone,email,address,city,state,zip
+A1001,Maria,Garcia,1985-04-12,F,512-555-0184,maria.garcia@example.com,1209 Oak Ridge Dr,Austin,TX,78701
+A1002,James,Johnson,1979-11-03,M,214-555-0139,james.johnson@example.com,44 Willow Street,Dallas,TX,75201
+A1003,Aisha,Khan,1992-07-18,F,713-555-0198,aisha.khan@example.com,902 Pine Hollow Rd,Houston,TX,77002
+A1004,Robert,Smith,1968-02-26,M,305-555-0161,robert.smith@example.com,18 Palm Ave,Miami,FL,33101
+A1005,Linda,Brown,1974-09-09,F,860-555-0144,linda.brown@example.com,77 Maple Lane,Hartford,CT,06103
+A1006,Wei,Chen,1988-12-21,M,415-555-0177,wei.chen@example.com,310 Mission St,San Francisco,CA,94105
+A1007,Patricia,Davis,1959-05-30,F,408-555-0108,patricia.davis@example.com,510 El Camino Real,San Jose,CA,95112
+A1008,Michael,Miller,1990-01-14,M,813-555-0125,michael.miller@example.com,600 Bay Shore Blvd,Tampa,FL,33602
+A1009,Sofia,Martinez,1983-08-02,F,210-555-0117,sofia.martinez@example.com,224 River Walk,San Antonio,TX,78205
+A1010,Daniel,Wilson,1971-03-19,M,203-555-0181,daniel.wilson@example.com,9 Harbor View Rd,New Haven,CT,06510
+A1011,Grace,Lee,1996-10-07,F,916-555-0169,grace.lee@example.com,82 Capitol Mall,Sacramento,CA,95814
+A1012,Omar,Hassan,1981-06-25,M,407-555-0104,omar.hassan@example.com,740 Orange Ave,Orlando,FL,32801

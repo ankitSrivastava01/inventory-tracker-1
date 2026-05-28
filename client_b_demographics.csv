@@ -1,0 +1,15 @@
+client_id,first_name,last_name,date_of_birth,gender,phone,email,address,city,state,zip
+B9001,Maria,Garcia,1985-04-12,F,5125550184,mgarcia@example.org,1209 Oakridge Drive,Austin,TX,78701
+B9002,Jim,Johnson,1979-11-03,M,214-555-0139,jjohnson@example.org,44 Willow St,Dallas,TX,75201
+B9003,Ayesha,Khan,1992-07-18,F,713-555-0198,a.khan@example.org,902 Pine Hollow Road,Houston,TX,77002
+B9004,Rob,Smith,1968-02-26,M,3055550161,rsmith@example.org,18 Palm Avenue,Miami,FL,33101
+B9005,Linda,Browne,1974-09-09,F,860-555-0144,lbrown@example.org,77 Maple Ln,Hartford,CT,06103
+B9006,Wei,Chen,1988-12-21,M,415-555-0177,wchen@example.org,310 Mission Street,San Francisco,CA,94105
+B9007,Pat,Davis,1959-05-30,F,408-555-0108,pdavis@example.org,510 El Camino,San Jose,CA,95112
+B9008,Michael,Miller,1990-01-14,M,8135550125,mmiller@example.org,600 Bayshore Blvd,Tampa,FL,33602
+B9009,Sophia,Martinez,1983-08-02,F,210-555-0117,smartinez@example.org,224 Riverwalk,San Antonio,TX,78205
+B9010,Dan,Wilson,1971-03-19,M,203-555-0181,dwilson@example.org,9 Harbor View,New Haven,CT,06510
+B9011,Grace,Li,1996-10-07,F,9165550169,glee@example.org,82 Capitol Mall,Sacramento,CA,95814
+B9012,Omar,Hassan,1981-06-25,M,407-555-0104,ohassan@example.org,740 Orange Avenue,Orlando,FL,32801
+B9013,Emily,Anderson,1989-09-17,F,602-555-0199,eanderson@example.org,15 Desert View,Phoenix,AZ,85004
+B9014,Carlos,Rivera,1977-04-04,M,602-555-0122,crivera@example.org,88 Central Ave,Phoenix,AZ,85004
